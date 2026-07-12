@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/name: product-service
     app.kubernetes.io/part-of: med-erp
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: product-service

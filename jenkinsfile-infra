@@ -43,10 +43,7 @@ pipeline {
         stage('Configure kubectl') {
             steps {
                 sh '''
-                aws eks update-kubeconfig \
-                  --region us-east-2 \
-                  --name my-eks-cluster1
-
+                aws eks update-kubeconfig --region us-east-2 --name my-eks-cluster1
                 kubectl get nodes
                 '''
             }
@@ -55,10 +52,7 @@ pipeline {
         stage('Associate OIDC Provider') {
             steps {
                 sh '''
-                eksctl utils associate-iam-oidc-provider \
-                  --cluster my-eks-cluster1 \
-                  --region us-east-2 \
-                  --approve
+                eksctl utils associate-iam-oidc-provider --cluster my-eks-cluster1 --region us-east-2 --approve || true
                 '''
             }
         }
@@ -100,7 +94,6 @@ pipeline {
                 else
                     curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
                 fi
-
                 helm version
                 '''
             }
@@ -168,4 +161,3 @@ pipeline {
         }
     }
 }
-

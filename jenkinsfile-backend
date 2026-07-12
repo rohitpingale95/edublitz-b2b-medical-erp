@@ -15,7 +15,6 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'dev', url: 'https://github.com/mayurpandit25/edublitz-b2b-medical-erp.git'
-                echo 'clonning is successfull'
             }
         }
 
