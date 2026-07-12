@@ -1,0 +1,57 @@
+pipeline {
+    agent {
+        label 'worker'
+    }
+
+    environment {
+        my_aws_credential = credentials('aws-access')
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'dev', url: 'https://github.com/mayurpandit25/edublitz-b2b-medical-erp.git'
+                echo 'clonning is successful'
+            }
+        }
+
+        stage('Build - Frontend') {
+            steps {
+                dir('frontend') {
+                    sh '''
+                    npm install
+                    npm run build
+                    '''
+                }
+            }
+            post {
+                success {
+                    archiveArtifacts artifacts: 'frontend/dist/**', fingerprint: true
+                }
+            }
+        }
+
+        stage('Upload Artifacts to S3') {
+            steps {
+                dir('frontend') {
+                    sh '''
+                    aws s3 sync dist/ s3://mayurcbz.space --delete
+                    aws s3 ls s3://mayurcbz.space/ --recursive
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Frontend deployed successfully.'
+        }
+
+        failure {
+            echo 'Frontend deployment failed.'
+        }
+    }
+}
+
+
