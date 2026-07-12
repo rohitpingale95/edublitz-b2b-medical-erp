@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/part-of: med-erp
     version: "1.0.0"
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: user-service
