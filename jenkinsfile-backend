@@ -116,9 +116,26 @@ pipeline {
             }
         }
 
-        stage('Deploy to Kubernetes') {
+        stage('Deploy to k8s') {
             steps {
-                
+                sh '''
+                aws eks update-kubeconfig --region us-east-2 --name my-eks-cluster1
+                kubectl apply -f k8s/configmaps/
+                kubectl apply -f k8s/deployments/
+                kubectl apply -f k8s/hpa/
+                kubectl apply -f k8s/services/
+                kubectl apply -f k8s/ingress/ingressclass.yaml
+                kubectl apply -f k8s/ingress/ingress.yaml
+
+                kubectl rollout status deployment/user-service -n med-erp
+                kubectl rollout status deployment/product-service -n med-erp
+                kubectl rollout status deployment/order-service -n med-erp
+
+                kubectl get pods -n med-erp
+                kubectl get svc -n med-erp
+                kubectl get hpa -n med-erp
+                kubectl get ingress -n med-erp
+                '''
             }
         }
     }
