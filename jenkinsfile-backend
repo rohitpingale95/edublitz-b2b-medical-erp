@@ -28,8 +28,25 @@ pipeline {
                 }
             }
         }
+
+        stage('BUILD - ORDER-SERVICE') {
+            steps {
+                dir('order-service') {
+                    sh '''
+                    mvn clean package -DskipTests
+                    '''
+                }
+            }
+            post {
+                success {
+                    archiveArtifacts artifacts: 'order-service/target/*.jar', fingerprint: true
+                }
+            }
+        }
     }
 }
+
+
 
 
 
