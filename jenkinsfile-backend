@@ -33,9 +33,7 @@ pipeline {
             steps {
                 withSonarQubeEnv('sonar') {
                     dir('user-service'){
-                        sh '''
-                        mvn sonar:sonar 
-                        '''
+                        sh 'mvn sonar:sonar'
                     }
                 }
             }
