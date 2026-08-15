@@ -43,8 +43,27 @@ pipeline {
                 }
             }
         }
+
+        stage('BUILD - PRODUCTS-SERVICE') {
+            steps {
+                dir('products-service') {
+                    sh '''
+                    mvn clean package -DskipTests
+                    '''
+                }
+            }
+            post {
+                success {
+                    archiveArtifacts artifacts: 'products-service/target/*.jar', fingerprint: true
+                }
+            }
+        }
     }
 }
+
+
+
+
 
 
 
