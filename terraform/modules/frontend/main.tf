@@ -38,13 +38,7 @@ resource "aws_cloudfront_origin_access_control" "this" {
 }
 
 
-data "aws_cloudfront_cache_policy" "caching_optimized" {
-  name = "Managed-CachingOptimized"
-}
-
-
 resource "aws_cloudfront_distribution" "this" {
-
   enabled = true
 
   aliases = [
@@ -56,14 +50,12 @@ resource "aws_cloudfront_distribution" "this" {
 
     origin_id = "medical-erp-frontend"
 
-    origin_access_control_id =
-      aws_cloudfront_origin_access_control.this.id
+    origin_access_control_id = aws_cloudfront_origin_access_control.this.id
   }
 
   default_root_object = "index.html"
 
   default_cache_behavior {
-
     target_origin_id = "medical-erp-frontend"
 
     viewer_protocol_policy = "redirect-to-https"
@@ -79,8 +71,8 @@ resource "aws_cloudfront_distribution" "this" {
       "HEAD"
     ]
 
-    cache_policy_id =
-      data.aws_cloudfront_cache_policy.caching_optimized.id
+    # AWS Managed-CachingOptimized policy
+    cache_policy_id = "658327ea-f89d-4fab-a63d-7e88639e58f"
   }
 
   restrictions {
@@ -90,7 +82,6 @@ resource "aws_cloudfront_distribution" "this" {
   }
 
   viewer_certificate {
-
     acm_certificate_arn = var.certificate_arn
 
     ssl_support_method = "sni-only"
@@ -122,10 +113,10 @@ resource "aws_cloudfront_distribution" "this" {
 
 
 data "aws_iam_policy_document" "this" {
-
   statement {
-
     sid = "AllowCloudFrontRead"
+
+    effect = "Allow"
 
     actions = [
       "s3:GetObject"
@@ -136,7 +127,6 @@ data "aws_iam_policy_document" "this" {
     ]
 
     principals {
-
       type = "Service"
 
       identifiers = [
@@ -145,7 +135,6 @@ data "aws_iam_policy_document" "this" {
     }
 
     condition {
-
       test = "StringEquals"
 
       variable = "AWS:SourceArn"
@@ -159,7 +148,6 @@ data "aws_iam_policy_document" "this" {
 
 
 resource "aws_s3_bucket_policy" "this" {
-
   bucket = aws_s3_bucket.this.id
 
   policy = data.aws_iam_policy_document.this.json
@@ -167,7 +155,6 @@ resource "aws_s3_bucket_policy" "this" {
 
 
 resource "aws_route53_record" "frontend" {
-
   zone_id = var.zone_id
 
   name = var.domain_name
@@ -175,7 +162,6 @@ resource "aws_route53_record" "frontend" {
   type = "A"
 
   alias {
-
     name = aws_cloudfront_distribution.this.domain_name
 
     zone_id = aws_cloudfront_distribution.this.hosted_zone_id
