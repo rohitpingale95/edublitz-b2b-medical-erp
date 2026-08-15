@@ -22,8 +22,7 @@ data "aws_iam_policy_document" "alb_assume_role" {
     }
 
     condition {
-      test = "StringEquals"
-
+      test     = "StringEquals"
       variable = "${replace(var.cluster_oidc_issuer_url, "https://", "")}:aud"
 
       values = [
@@ -32,8 +31,7 @@ data "aws_iam_policy_document" "alb_assume_role" {
     }
 
     condition {
-      test = "StringEquals"
-
+      test     = "StringEquals"
       variable = "${replace(var.cluster_oidc_issuer_url, "https://", "")}:sub"
 
       values = [
@@ -76,30 +74,28 @@ resource "helm_release" "alb_controller" {
   chart      = "aws-load-balancer-controller"
   namespace  = "kube-system"
 
-  set {
-    name  = "clusterName"
-    value = var.cluster_name
-  }
-
-  set {
-    name  = "region"
-    value = var.region
-  }
-
-  set {
-    name  = "vpcId"
-    value = var.vpc_id
-  }
-
-  set {
-    name  = "serviceAccount.create"
-    value = "false"
-  }
-
-  set {
-    name  = "serviceAccount.name"
-    value = "aws-load-balancer-controller"
-  }
+  set = [
+    {
+      name  = "clusterName"
+      value = var.cluster_name
+    },
+    {
+      name  = "region"
+      value = var.region
+    },
+    {
+      name  = "vpcId"
+      value = var.vpc_id
+    },
+    {
+      name  = "serviceAccount.create"
+      value = "false"
+    },
+    {
+      name  = "serviceAccount.name"
+      value = "aws-load-balancer-controller"
+    }
+  ]
 
   depends_on = [
     kubernetes_service_account_v1.alb_controller
