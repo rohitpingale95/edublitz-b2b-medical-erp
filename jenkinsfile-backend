@@ -29,6 +29,18 @@ pipeline {
             }
         }
 
+        stage('SonarQube Analysis - USER-SERVICE') {
+            steps {
+                dir('user-service') {
+                    withSonarQubeEnv('sonar') {
+                        sh '''
+                        mvn sonar:sonar 
+                        '''
+                    }
+                }
+            }
+        }
+
         stage('BUILD - ORDER-SERVICE') {
             steps {
                 dir('order-service') {
