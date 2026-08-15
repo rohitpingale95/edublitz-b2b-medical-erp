@@ -9,6 +9,24 @@ pipeline {
                 git branch: 'dev', url: 'https://github.com/mayurpandit25/edublitz-b2b-medical-erp.git'
             }
         }
+
+        stage('BUILD - USER-SERVICE') {
+            steps {
+                dir('user-service') {
+                    sh '''
+                    mvn clean package -DskipTests
+                    '''
+                }
+            }
+            post {
+                success {
+                    archiveArtifacts artifacts: 'user-service/target/*.jar', fingerprint: true
+                }
+            }
+        }
     }
 }
+
+
+
 
