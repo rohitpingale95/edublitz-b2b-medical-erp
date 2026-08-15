@@ -79,15 +79,14 @@ module "backend_acm" {
 }
 
 
-# Frontend:
-# S3 + CloudFront + Route53
+# Frontend S3 + CloudFront
 module "frontend" {
   source = "./modules/frontend"
 
-  domain_name = var.domain_name
+  bucket_name = "medical-erp-mayurcbz-frontend"
 
-  zone_id = module.route53.zone_id
-
+  domain_name     = var.domain_name
+  zone_id         = module.route53.zone_id
   certificate_arn = module.frontend_acm.certificate_arn
 
   project_name = var.project_name

@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "this" {
-  bucket = var.domain_name
+  bucket = var.bucket_name
 
   tags = {
     Project     = var.project_name
