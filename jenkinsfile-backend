@@ -46,7 +46,7 @@ pipeline {
 
         stage('BUILD - PRODUCTS-SERVICE') {
             steps {
-                dir('products-service') {
+                dir('product-service') {
                     sh '''
                     mvn clean package -DskipTests
                     '''
