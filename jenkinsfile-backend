@@ -88,11 +88,19 @@ pipeline {
                 }
             }
         }
+
+        stage('Docker Build') {
+            steps {
+                sh '''
+                    docker build -t user-service:latest ./user-service
+                    docker build -t order-service:latest ./order-service
+                    docker build -t product-service:latest ./product-service
+                    docker images
+                '''
+            }
+        }
     }
 }
-
-
-
 
 
 
