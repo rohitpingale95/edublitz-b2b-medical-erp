@@ -54,7 +54,7 @@ pipeline {
             }
             post {
                 success {
-                    archiveArtifacts artifacts: 'products-service/target/*.jar', fingerprint: true
+                    archiveArtifacts artifacts: 'product-service/target/*.jar', fingerprint: true
                 }
             }
         }
