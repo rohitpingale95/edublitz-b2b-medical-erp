@@ -20,6 +20,17 @@ pipeline {
             }
         }
 
+        stage('Create IAM Policy') {
+            steps {
+                dir('terraform/modules/alb-controller') {
+                    sh '''
+                        curl -L -o iam-policy.json \
+                        https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.7.2/docs/install/iam_policy.json
+                    '''
+                }
+            }
+        }
+
         stage('Terraform Init') {
             steps {
                 dir('terraform') {
@@ -32,7 +43,7 @@ pipeline {
             steps {
                 dir('terraform') {
                     sh '''
-                        terraform fmt -check
+                        terraform fmt -check -recursive
                         terraform validate
                     '''
                 }
