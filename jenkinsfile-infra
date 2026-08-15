@@ -1,4 +1,5 @@
 pipeline {
+
     agent {
         label 'worker'
     }
@@ -13,151 +14,55 @@ pipeline {
 
     stages {
 
+        stage('Checkout') {
+            steps {
+                git branch: 'dev', url: 'https://github.com/mayurpandit25/edublitz-b2b-medical-erp.git'
+            }
+        }
+
         stage('Terraform Init') {
             steps {
-                sh 'terraform init'
+                dir('terraform') {
+                    sh 'terraform init'
+                }
             }
         }
 
         stage('Terraform Format & Validate') {
             steps {
-                sh '''
-                terraform fmt
-                terraform validate
-                '''
+                dir('terraform') {
+                    sh '''
+                        terraform fmt -check
+                        terraform validate
+                    '''
+                }
             }
         }
 
         stage('Terraform Plan') {
             steps {
-                sh 'terraform plan'
+                dir('terraform') {
+                    sh 'terraform plan'
+                }
             }
         }
 
         stage('Terraform Apply') {
             steps {
-                sh 'terraform apply -auto-approve'
-            }
-        }
-
-        stage('Configure kubectl') {
-            steps {
-                sh '''
-                aws eks update-kubeconfig --region us-east-2 --name my-eks-cluster1
-                kubectl get nodes
-                '''
-            }
-        }
-
-        stage('Associate OIDC Provider') {
-            steps {
-                sh '''
-                eksctl utils associate-iam-oidc-provider --cluster my-eks-cluster1 --region us-east-2 --approve || true
-                '''
-            }
-        }
-
-        stage('Create IAM Policy') {
-            steps {
-                sh '''
-                curl -o iam_policy.json \
-                https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json
-
-                aws iam create-policy \
-                  --policy-name AWSLoadBalancerControllerIAMPolicy-Mayur \
-                  --policy-document file://iam_policy.json || true
-                '''
-            }
-        }
-
-        stage('Create IAM Service Account') {
-            steps {
-                sh '''
-                eksctl create iamserviceaccount \
-                  --cluster my-eks-cluster1 \
-                  --namespace kube-system \
-                  --name aws-load-balancer-controller \
-                  --role-name AWSLoadBalancerControllerIAMRole-Mayur \
-                  --attach-policy-arn arn:aws:iam::506995420953:policy/AWSLoadBalancerControllerIAMPolicy-Mayur \
-                  --approve \
-                  --region us-east-2 || true
-                '''
-            }
-        }
-
-        stage('Install Helm') {
-            steps {
-                sh '''
-                if command -v helm >/dev/null 2>&1
-                then
-                    echo "Helm is already installed"
-                else
-                    curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-                fi
-                helm version
-                '''
-            }
-        }
-
-        stage('Install AWS Load Balancer Controller') {
-            steps {
-                sh '''
-                helm repo add eks https://aws.github.io/eks-charts || true
-                helm repo update
-
-                helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller \
-                  -n kube-system \
-                  --set clusterName=my-eks-cluster1 \
-                  --set serviceAccount.create=false \
-                  --set serviceAccount.name=aws-load-balancer-controller \
-                  --set region=us-east-2 \
-                  --set vpcId=vpc-0d32f289239e9df31
-                '''
-            }
-        }
-
-        stage('Create Namespace') {
-            steps {
-                sh '''
-                kubectl apply -f k8s/namespace/
-                '''
-            }
-        }
-
-        stage('Create Application Secrets') {
-            steps {
-                sh '''
-                kubectl create secret generic app-secrets \
-                  -n med-erp \
-                  --from-literal=MONGODB_URI_USER="mongodb+srv://cbz:redhat@edublitz.js8tilw.mongodb.net/users_db?appName=edublitz" \
-                  --from-literal=MONGODB_URI_PRODUCT="mongodb+srv://cbz:redhat@edublitz.js8tilw.mongodb.net/products_db?appName=edublitz" \
-                  --from-literal=MONGODB_URI_ORDER="mongodb+srv://cbz:redhat@edublitz.js8tilw.mongodb.net/orders_db?appName=edublitz" \
-                  --from-literal=JWT_SECRET="404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970" \
-                  --dry-run=client -o yaml | kubectl apply -f -
-                '''
-            }
-        }
-
-        stage('Verify Infrastructure') {
-            steps {
-                sh '''
-                kubectl rollout status deployment/aws-load-balancer-controller -n kube-system
-                kubectl get nodes
-                kubectl get pods -n kube-system
-                kubectl get namespace
-                kubectl get secrets -n med-erp
-                '''
+                dir('terraform') {
+                    sh 'terraform apply -auto-approve'
+                }
             }
         }
     }
 
     post {
         success {
-            echo 'Infrastructure Pipeline Executed Successfully.'
+            echo 'Medical ERP infrastructure created successfully.'
         }
 
         failure {
-            echo 'Infrastructure Pipeline Failed.'
+            echo 'Medical ERP infrastructure deployment failed.'
         }
     }
 }
