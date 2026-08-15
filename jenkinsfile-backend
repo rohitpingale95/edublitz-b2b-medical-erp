@@ -99,8 +99,30 @@ pipeline {
                 '''
             }
         }
+
+        stage('Push to ECR') {
+            steps {
+                sh '''
+                    aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 942049393829.dkr.ecr.us-west-2.amazonaws.com
+
+                    #USER-SERVICE
+                    docker tag user-service:latest 942049393829.dkr.ecr.us-west-2.amazonaws.com/user-service:latest
+                    docker push 942049393829.dkr.ecr.us-west-2.amazonaws.com/user-service:latest
+
+                    #PRODUCT-SERVICE
+                    docker tag product-service:latest 942049393829.dkr.ecr.us-west-2.amazonaws.com/product-service:latest
+                    docker push 942049393829.dkr.ecr.us-west-2.amazonaws.com/product-service:latest
+
+                    #ORDER-SERVICE
+                    docker tag order-service:latest 942049393829.dkr.ecr.us-west-2.amazonaws.com/order-service:latest
+                    docker push 942049393829.dkr.ecr.us-west-2.amazonaws.com/order-service:latest
+
+                '''
+            }
+        }
     }
 }
+
 
 
 
