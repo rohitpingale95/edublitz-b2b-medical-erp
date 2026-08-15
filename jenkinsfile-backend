@@ -78,9 +78,18 @@ pipeline {
                 }
             }
         }
+
+        stage('SonarQube Analysis - PRODUCTS-SERVICE') {
+            steps {
+                withSonarQubeEnv('sonarqube') {
+                    dir('product-service') {
+                        sh 'mvn sonar:sonar'
+                    }
+                }
+            }
+        }
     }
 }
-
 
 
 
