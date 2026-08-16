@@ -9,6 +9,10 @@ data "aws_subnets" "default" {
   }
 }
 
+# ---------------------------------------------------------
+# EKS CLUSTER IAM ROLE
+# ---------------------------------------------------------
+
 resource "aws_iam_role" "eks_cluster_role" {
   name = "eks-cluster-role"
 
@@ -31,6 +35,10 @@ resource "aws_iam_role_policy_attachment" "eks_cluster_policy" {
   role       = aws_iam_role.eks_cluster_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
 }
+
+# ---------------------------------------------------------
+# EKS NODE IAM ROLE
+# ---------------------------------------------------------
 
 resource "aws_iam_role" "node_role" {
   name = "eks-node-role"
@@ -62,6 +70,10 @@ resource "aws_iam_role_policy_attachment" "node_policies" {
   ], count.index)
 }
 
+# ---------------------------------------------------------
+# EKS CLUSTER
+# ---------------------------------------------------------
+
 resource "aws_eks_cluster" "mycluster" {
   name     = var.cluster_name
   role_arn = aws_iam_role.eks_cluster_role.arn
@@ -74,6 +86,10 @@ resource "aws_eks_cluster" "mycluster" {
     aws_iam_role_policy_attachment.eks_cluster_policy
   ]
 }
+
+# ---------------------------------------------------------
+# EKS NODE GROUP
+# ---------------------------------------------------------
 
 resource "aws_eks_node_group" "nodegroup" {
   cluster_name    = aws_eks_cluster.mycluster.name
@@ -116,7 +132,7 @@ resource "aws_iam_openid_connect_provider" "eks" {
 }
 
 # ---------------------------------------------------------
-# AWS Load Balancer Controller IAM Policy
+# AWS LOAD BALANCER CONTROLLER IAM POLICY
 # ---------------------------------------------------------
 
 resource "aws_iam_policy" "aws_load_balancer_controller" {
@@ -126,7 +142,7 @@ resource "aws_iam_policy" "aws_load_balancer_controller" {
 }
 
 # ---------------------------------------------------------
-# AWS Load Balancer Controller IAM Role
+# AWS LOAD BALANCER CONTROLLER IAM ROLE
 # ---------------------------------------------------------
 
 data "aws_iam_policy_document" "lb_controller_assume_role" {
@@ -163,21 +179,18 @@ data "aws_iam_policy_document" "lb_controller_assume_role" {
 }
 
 resource "aws_iam_role" "aws_load_balancer_controller" {
-
   name = "AWSLoadBalancerControllerIAMRole"
 
   assume_role_policy = data.aws_iam_policy_document.lb_controller_assume_role.json
 }
 
 resource "aws_iam_role_policy_attachment" "lb_controller" {
-
-  role = aws_iam_role.aws_load_balancer_controller.name
-
+  role       = aws_iam_role.aws_load_balancer_controller.name
   policy_arn = aws_iam_policy.aws_load_balancer_controller.arn
 }
 
 # ---------------------------------------------------------
-# Kubernetes Provider
+# KUBERNETES PROVIDER
 # ---------------------------------------------------------
 
 provider "kubernetes" {
@@ -204,7 +217,7 @@ provider "kubernetes" {
 }
 
 # ---------------------------------------------------------
-# Kubernetes Service Account
+# KUBERNETES SERVICE ACCOUNT
 # ---------------------------------------------------------
 
 resource "kubernetes_service_account" "aws_load_balancer_controller" {
@@ -214,8 +227,7 @@ resource "kubernetes_service_account" "aws_load_balancer_controller" {
     namespace = "kube-system"
 
     annotations = {
-      "eks.amazonaws.com/role-arn" =
-        aws_iam_role.aws_load_balancer_controller.arn
+      "eks.amazonaws.com/role-arn" = aws_iam_role.aws_load_balancer_controller.arn
     }
   }
 
@@ -225,7 +237,7 @@ resource "kubernetes_service_account" "aws_load_balancer_controller" {
 }
 
 # ---------------------------------------------------------
-# Helm Provider
+# HELM PROVIDER
 # ---------------------------------------------------------
 
 provider "helm" {
@@ -255,7 +267,7 @@ provider "helm" {
 }
 
 # ---------------------------------------------------------
-# AWS Load Balancer Controller
+# AWS LOAD BALANCER CONTROLLER
 # ---------------------------------------------------------
 
 resource "helm_release" "aws_load_balancer_controller" {
