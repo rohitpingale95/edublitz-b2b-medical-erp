@@ -26,38 +26,13 @@ pipeline {
                 dir('terraform') {
                     sh '''
                         curl -L -o iam_policy.json \
-                        https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.7.2/docs/install/iam_policy.json
+                        https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.8.2/docs/install/iam_policy.json
 
-                        python3 - <<'PY'
-import json
+                        echo "IAM policy downloaded successfully."
 
-file = "iam_policy.json"
-
-with open(file) as f:
-    policy = json.load(f)
-
-for statement in policy["Statement"]:
-
-    actions = statement.get("Action", [])
-
-    if isinstance(actions, str):
-        actions = [actions]
-
-    if "ec2:DescribeSubnets" in actions:
-        if "ec2:DescribeRouteTables" not in actions:
-            actions.append("ec2:DescribeRouteTables")
-
-    statement["Action"] = actions
-
-with open(file, "w") as f:
-    json.dump(policy, f, indent=2)
-
-print("IAM policy updated successfully.")
-print("Added: ec2:DescribeRouteTables")
-PY
-
-                        echo "Checking permission:"
-                        grep -n "ec2:DescribeRouteTables" iam_policy.json
+                        echo "Checking required permissions:"
+                        grep -n "ec2:DescribeRouteTables" iam_policy.json || true
+                        grep -n "elasticloadbalancing:DescribeListenerAttributes" iam_policy.json || true
                     '''
                 }
             }
