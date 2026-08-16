@@ -1,48 +1,12 @@
-output "vpc_id" {
-  value = module.vpc.vpc_id
+output "cluster_name" {
+  value = aws_eks_cluster.mycluster.name
 }
 
-output "private_subnets" {
-  value = module.vpc.private_subnet_ids
+output "cluster_endpoint" {
+  value = aws_eks_cluster.mycluster.endpoint
 }
 
-output "public_subnets" {
-  value = module.vpc.public_subnet_ids
-}
-
-output "eks_cluster_name" {
-  value = module.eks.cluster_name
-}
-
-output "eks_cluster_endpoint" {
-  value = module.eks.cluster_endpoint
-}
-
-output "ecr_repositories" {
-  value = module.ecr.repository_urls
-}
-
-output "frontend_bucket" {
-  value = module.frontend.bucket_name
-}
-
-output "cloudfront_domain" {
-  value = module.frontend.cloudfront_domain_name
-}
-
-output "frontend_url" {
-  value = module.frontend.frontend_url
-}
-
-output "frontend_certificate_arn" {
-  value = module.frontend_acm.certificate_arn
-}
-
-output "backend_certificate_arn" {
-  value = module.backend_acm.certificate_arn
-}
-
-output "route53_nameservers" {
-  value = module.route53.name_servers
+output "load_balancer_controller_role" {
+  value = aws_iam_role.aws_load_balancer_controller.arn
 }
 

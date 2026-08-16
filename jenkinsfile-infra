@@ -4,12 +4,12 @@ pipeline {
         label 'worker'
     }
 
-    environment {
-        AWS_ACCESS = credentials('aws-access')
-    }
-
     tools {
         terraform 'tf-install'
+    }
+
+    environment {
+        AWS_ACCESS = credentials('aws-access')
     }
 
     stages {
@@ -22,9 +22,9 @@ pipeline {
 
         stage('Create IAM Policy') {
             steps {
-                dir('terraform/modules/alb-controller') {
+                dir('terraform') {
                     sh '''
-                        curl -L -o iam-policy.json \
+                        curl -L -o iam_policy.json \
                         https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.7.2/docs/install/iam_policy.json
                     '''
                 }
@@ -34,16 +34,27 @@ pipeline {
         stage('Terraform Init') {
             steps {
                 dir('terraform') {
-                    sh 'terraform init'
+                    sh '''
+                        terraform init
+                    '''
                 }
             }
         }
 
-        stage('Terraform Format & Validate') {
+        stage('Terraform Format') {
             steps {
                 dir('terraform') {
                     sh '''
                         terraform fmt -check -recursive
+                    '''
+                }
+            }
+        }
+
+        stage('Terraform Validate') {
+            steps {
+                dir('terraform') {
+                    sh '''
                         terraform validate
                     '''
                 }
@@ -53,7 +64,9 @@ pipeline {
         stage('Terraform Plan') {
             steps {
                 dir('terraform') {
-                    sh 'terraform plan'
+                    sh '''
+                        terraform plan
+                    '''
                 }
             }
         }
@@ -61,7 +74,9 @@ pipeline {
         stage('Terraform Apply') {
             steps {
                 dir('terraform') {
-                    sh 'terraform apply -auto-approve'
+                    sh '''
+                        terraform apply -auto-approve
+                    '''
                 }
             }
         }
@@ -69,11 +84,11 @@ pipeline {
 
     post {
         success {
-            echo 'Medical ERP infrastructure created successfully.'
+            echo 'EKS infrastructure created successfully.'
         }
-
         failure {
-            echo 'Medical ERP infrastructure deployment failed.'
+            echo 'EKS infrastructure creation failed.'
         }
     }
 }
+
