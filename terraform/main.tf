@@ -284,6 +284,14 @@ resource "helm_release" "aws_load_balancer_controller" {
       value = aws_eks_cluster.mycluster.name
     },
     {
+      name  = "region"
+      value = var.region
+    },
+    {
+      name  = "vpcId"
+      value = data.aws_vpc.default.id
+    },
+    {
       name  = "serviceAccount.create"
       value = "false"
     },
@@ -294,6 +302,7 @@ resource "helm_release" "aws_load_balancer_controller" {
   ]
 
   depends_on = [
+    aws_eks_node_group.nodegroup,
     kubernetes_service_account.aws_load_balancer_controller
   ]
 }
