@@ -1,4 +1,5 @@
 pipeline {
+
     agent {
         label 'worker'
     }
@@ -8,9 +9,23 @@ pipeline {
     }
 
     stages {
+
         stage('Checkout') {
             steps {
-                git branch: 'dev', url: 'https://github.com/mayurpandit25/edublitz-b2b-medical-erp.git'
+                git branch: 'dev',
+                    url: 'https://github.com/mayurpandit25/edublitz-b2b-medical-erp.git'
+            }
+        }
+
+        stage('Check AWS Identity') {
+            steps {
+                sh '''
+                    echo "Checking AWS identity..."
+                    aws sts get-caller-identity
+
+                    echo "Checking S3 bucket access..."
+                    aws s3 ls s3://mayurcbz.spacee
+                '''
             }
         }
 
@@ -18,11 +33,12 @@ pipeline {
             steps {
                 dir('frontend') {
                     sh '''
-                    npm install
-                    npm run build
+                        npm install
+                        npm run build
                     '''
                 }
             }
+
             post {
                 success {
                     archiveArtifacts artifacts: 'frontend/dist/**', fingerprint: true
@@ -34,8 +50,14 @@ pipeline {
             steps {
                 dir('frontend') {
                     sh '''
-                    aws s3 sync dist/ s3://mayurcbz.spacee --delete
-                    aws s3 ls s3://mayurcbz.spacee/ --recursive
+                        echo "Uploading frontend to S3..."
+
+                        aws s3 sync dist/ s3://mayurcbz.spacee --delete
+
+                        echo "Upload completed."
+
+                        echo "Files currently in S3:"
+                        aws s3 ls s3://mayurcbz.spacee/ --recursive
                     '''
                 }
             }
@@ -43,6 +65,7 @@ pipeline {
     }
 
     post {
+
         success {
             echo 'Frontend deployed successfully.'
         }
@@ -52,4 +75,3 @@ pipeline {
         }
     }
 }
-
