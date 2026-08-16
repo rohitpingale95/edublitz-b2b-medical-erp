@@ -16,7 +16,8 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git branch: 'dev', url: 'https://github.com/mayurpandit25/edublitz-b2b-medical-erp.git'
+                git branch: 'dev',
+                    url: 'https://github.com/mayurpandit25/edublitz-b2b-medical-erp.git'
             }
         }
 
@@ -26,6 +27,37 @@ pipeline {
                     sh '''
                         curl -L -o iam_policy.json \
                         https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.7.2/docs/install/iam_policy.json
+
+                        python3 - <<'PY'
+import json
+
+file = "iam_policy.json"
+
+with open(file) as f:
+    policy = json.load(f)
+
+for statement in policy["Statement"]:
+
+    actions = statement.get("Action", [])
+
+    if isinstance(actions, str):
+        actions = [actions]
+
+    if "ec2:DescribeSubnets" in actions:
+        if "ec2:DescribeRouteTables" not in actions:
+            actions.append("ec2:DescribeRouteTables")
+
+    statement["Action"] = actions
+
+with open(file, "w") as f:
+    json.dump(policy, f, indent=2)
+
+print("IAM policy updated successfully.")
+print("Added: ec2:DescribeRouteTables")
+PY
+
+                        echo "Checking permission:"
+                        grep -n "ec2:DescribeRouteTables" iam_policy.json
                     '''
                 }
             }
@@ -83,12 +115,13 @@ pipeline {
     }
 
     post {
+
         success {
             echo 'EKS infrastructure created successfully.'
         }
+
         failure {
             echo 'EKS infrastructure creation failed.'
         }
     }
 }
-
