@@ -124,8 +124,41 @@ pipeline {
                 '''
             }
         }
+
+        stage('Deployment On EKS') {
+            steps {
+                sh '''
+                aws eks update-kubeconfig --region us-west-2 --name my-eks-cluster1
+
+                kubectl apply -f k8s/namespace/
+                kubectl apply -f k8s/deployments/
+                kubectl apply -f k8s/configmaps/
+                kubectl apply -f k8s/services/
+                kubectl apply -f k8s/ingress/ingressclass.yaml
+                kubectl apply -f k8s/ingress/ingress.yaml
+                kubectl apply -f k8s/hpa/
+
+                kubectl get pods -n med-erp
+                kubectl get svc -n med-erp
+                sleep 30
+                kubectl get all -n med-erp
+                kubectl get ingress -n med-erp
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Backend Pipeline is Successfull.'
+        }
+
+        failure {
+            echo 'Backend pipeline is failed'
+        }
     }
 }
+
 
 
 
